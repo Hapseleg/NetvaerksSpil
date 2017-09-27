@@ -2,6 +2,7 @@ package client;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
@@ -33,12 +34,13 @@ public class MainApp extends Application {
 
 	private Label[][] fields;
 	private TextArea scoreList;
+	private DataOutputStream outToServer;
 
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			Socket clientSocket = new Socket("10.24.66.0", 1337);
-			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			outToServer.writeBytes("NCasper\n");
 			board = updateBoard(inFromServer.readLine());
@@ -94,21 +96,26 @@ public class MainApp extends Application {
 			primaryStage.show();
 
 			scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-				switch (event.getCode()) {
-				case UP:
-					// playerMoved(0, -1, "up");
-					break;
-				case DOWN:
-					// playerMoved(0, +1, "down");
-					break;
-				case LEFT:
-					// playerMoved(-1, 0, "left");
-					break;
-				case RIGHT:
-					// playerMoved(+1, 0, "right");
-					break;
-				default:
-					break;
+				try {
+					switch (event.getCode()) {
+					case UP:
+						outToServer.writeBytes("u\n");
+						break;
+					case DOWN:
+						outToServer.writeBytes("d\n");
+						break;
+					case LEFT:
+						outToServer.writeBytes("l\n");
+						break;
+					case RIGHT:
+						outToServer.writeBytes("r\n");
+						break;
+					default:
+						break;
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			});
 		} catch (Exception e) {
