@@ -53,6 +53,7 @@ public class Game {
         default:
             break;
         }
+        System.out.println("player x pos : " + player.getXpos());
     }
 
     /**
@@ -89,7 +90,7 @@ public class Game {
     private void notifyPlayers() throws IOException {
         String s = "";
         for (PlayerThread p : players) {
-            s += p.getName() + "," + p.getXpos() + "," + p.getYpos() + "," + p.getPoint() + "¤";
+            s += p.getName() + "," + p.getXpos() + "," + p.getYpos() + "," + p.getPoint() + "#";
         }
         for (PlayerThread p : players) {
             p.sendMessage(s.substring(0, s.length() - 1));
