@@ -39,7 +39,7 @@ public class MainApp extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			Socket clientSocket = new Socket("10.24.66.0", 1337);
+			Socket clientSocket = new Socket("localhost", 1337);
 			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			outToServer.writeBytes("NCasper\n");

@@ -1,6 +1,7 @@
 package client;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.Socket;
 
 import javafx.scene.control.Label;
@@ -15,5 +16,17 @@ public class ReadThread extends Thread {
 		this.socket = socket;
 		this.inFromServer = inFromServer;
 		this.fields = fields;
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				String[] firstSplit = inFromServer.readLine().split("¤");
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
