@@ -10,7 +10,7 @@ public class PlayerThread extends Thread {
     private Socket connectionSocket;
     private Game game;
     private int xpos, ypos, point;
-    private String direction, name;
+    private String direction, playerName;
     private DataOutputStream outToClient;
 
     public PlayerThread(Socket connectionSocket, Game game, int xpos, int ypos, String direction) {
@@ -78,6 +78,14 @@ public class PlayerThread extends Thread {
     
     public void setDirection(String direction) {
         this.direction = direction;
+    }
+    
+    public String getPlayerName() {
+        return playerName;
+    }
+    
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
     }
     
 }
