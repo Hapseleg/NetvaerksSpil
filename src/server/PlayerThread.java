@@ -35,7 +35,12 @@ public class PlayerThread extends Thread {
             while (true) {
                 String s = inFromClient.readLine();
                 System.out.println(s);
-                game.receiveMessage(s, this);
+                try {
+                    game.receiveMessage(s, this);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
         }
