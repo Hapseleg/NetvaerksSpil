@@ -32,9 +32,11 @@ public class MainApp extends Application {
 
 	private String[] board;
 
-	private Label[][] fields;
+	private Label[][] fields, fieldsDefault;
 	private TextArea scoreList;
 	private DataOutputStream outToServer;
+
+	private ReadThread read;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -42,8 +44,8 @@ public class MainApp extends Application {
 			Socket clientSocket = new Socket("localhost", 1337);
 			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			outToServer.writeBytes("NCasper\n");
 			board = updateBoard(inFromServer.readLine());
+			outToServer.writeBytes("NCasper\n");
 
 			GridPane grid = new GridPane();
 			grid.setHgap(10);
@@ -85,7 +87,9 @@ public class MainApp extends Application {
 				}
 			}
 			scoreList.setEditable(false);
-
+			fieldsDefault = fields.clone();
+			read = new ReadThread(clientSocket, inFromServer, fields, scoreList);
+			read.start();
 			grid.add(mazeLabel, 0, 0);
 			grid.add(scoreLabel, 1, 0);
 			grid.add(boardGrid, 0, 1);
@@ -99,22 +103,21 @@ public class MainApp extends Application {
 				try {
 					switch (event.getCode()) {
 					case UP:
-						outToServer.writeBytes("u\n");
+						outToServer.writeBytes("U\n");
 						break;
 					case DOWN:
-						outToServer.writeBytes("d\n");
+						outToServer.writeBytes("D\n");
 						break;
 					case LEFT:
-						outToServer.writeBytes("l\n");
+						outToServer.writeBytes("L\n");
 						break;
 					case RIGHT:
-						outToServer.writeBytes("r\n");
+						outToServer.writeBytes("R\n");
 						break;
 					default:
 						break;
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			});
