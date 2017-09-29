@@ -2,14 +2,26 @@ package server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Game {
     private String board;
+    private String[][] boardArray;
     private ArrayList<PlayerThread> players;
     
     public Game(String boardString) {
         this.players = new ArrayList<>();
         this.board = boardString;
+        createBoardArray(20, 20);
+    }
+    
+    private void createBoardArray(int x, int y) {
+        boardArray = new String[x][y];
+
+        for (int i = 0; i < boardArray.length; i++) {
+            boardArray[i] = board.substring(i * x, (i + 1) * y).split("(?!^)");
+            System.out.println(Arrays.toString(boardArray[i]));
+        }
     }
 
     public ArrayList<PlayerThread> getPlayers() {
@@ -62,11 +74,13 @@ public class Game {
      * @throws Exception
      */
     public synchronized void receiveMessage(String message, PlayerThread player) throws Exception {
+        int y = player.getYpos();
+        int x = player.getXpos();
         switch (message.charAt(0)) {
         case 'U': {// Up
             //check om der er en væg (og senere hero) og at man ikke går udenfor banen
-            int y = player.getYpos();
-            if (board.charAt(y - 20) != 'w') {
+            
+            if (!boardArray[y - 1][x].equals("w")) {
                 player.setYpos(y - 1);
             }
             else {
@@ -75,8 +89,7 @@ public class Game {
             break;
         }
         case 'D': {// Down
-            int y = player.getYpos();
-            if (board.charAt(y + 20) != 'w') {
+            if (!boardArray[y + 1][x].equals("w")) {
                 player.setYpos(y + 1);
             }
             else {
@@ -85,8 +98,8 @@ public class Game {
             break;
         }
         case 'R': {// Right
-            int x = player.getXpos();
-            if (board.charAt(x + 1) != 'w') {
+            
+            if (!boardArray[y][x + 1].equals("w")) {
                 player.setXpos(x + 1);
             }
             else {
@@ -95,8 +108,7 @@ public class Game {
             break;
         }
         case 'L': {// Left
-            int x = player.getXpos();
-            if (board.charAt(x - 1) != 'w') {
+            if (!boardArray[y][x - 1].equals("w")) {
                 player.setXpos(x - 1);
             }
             else {
@@ -118,7 +130,7 @@ public class Game {
         }
     }
     
-    private void notifyPlayers() throws IOException {
+    public void notifyPlayers() throws IOException {
         String s = "";
         for (PlayerThread p : players) {
             s += p.getPlayerName() + "," + p.getXpos() + "," + p.getYpos() + "," + p.getDirection()
