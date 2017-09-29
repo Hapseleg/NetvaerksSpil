@@ -31,16 +31,18 @@ public class MainApp extends Application {
 
 	private String[] board;
 
-	private Label[][] fields, fieldsDefault;
+	private Label[][] fields;
 	private TextArea scoreList;
 	private DataOutputStream outToServer;
 
 	private ReadThread read;
 
+	private Socket clientSocket;
+
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			Socket clientSocket = new Socket("localhost", 1337);
+			clientSocket = new Socket("10.24.65.76", 1337);
 			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			board = updateBoard(inFromServer.readLine());
@@ -81,7 +83,6 @@ public class MainApp extends Application {
 				}
 			}
 			scoreList.setEditable(false);
-			fieldsDefault = fields.clone();
 			read = new ReadThread(clientSocket, inFromServer, fields, scoreList);
 			read.start();
 			grid.add(mazeLabel, 0, 0);
@@ -108,10 +109,15 @@ public class MainApp extends Application {
 					case RIGHT:
 						outToServer.writeBytes("R\n");
 						break;
+					case ESCAPE:
+						outToServer.writeBytes("X\n");
+						this.stop();
 					default:
 						break;
 					}
 				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			});
@@ -130,5 +136,14 @@ public class MainApp extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
+	}
+
+	@Override
+	public void stop() {
+		try {
+			clientSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
