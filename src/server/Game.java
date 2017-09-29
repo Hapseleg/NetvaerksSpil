@@ -2,9 +2,7 @@ package server;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
-import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
+import java.util.Arrays;
 
 public class Game {
     private String[][] board;
@@ -12,15 +10,17 @@ public class Game {
 
     public Game(String boardString) {
         this.players = new ArrayList<>();
-        
         createBoard(boardString);
     }
     
     private void createBoard(String boardString) {
+        board = new String[20][20];
         for (int j = 0; j < 20; j++) {
+            String ar = boardString.substring(j * 20, (j + 1) * 20);
             for (int i = 0; i < 20; i++) {
-                board[j][i] = boardString.charAt(i) + "";
+                board[j][i] = ar.charAt(i) + "";
             }
+            System.out.println(Arrays.toString(board[j]));
         }
     }
 
