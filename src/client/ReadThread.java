@@ -13,7 +13,7 @@ public class ReadThread extends Thread {
 
 	private Socket socket;
 	private BufferedReader inFromServer;
-	private Label[][] fields;
+	private Label[][] fields, fieldsDefault;
 	private TextArea scoreboard;
 
 	private Image hero_right, hero_left, hero_up, hero_down;
@@ -22,6 +22,7 @@ public class ReadThread extends Thread {
 		this.socket = socket;
 		this.inFromServer = inFromServer;
 		this.fields = fields;
+		this.fieldsDefault = fields.clone();
 		this.scoreboard = scoreboard;
 		hero_right = new Image(getClass().getResourceAsStream("Image/heroRight.png"), 20, 20, false, false);
 		hero_left = new Image(getClass().getResourceAsStream("Image/heroLeft.png"), 20, 20, false, false);
@@ -34,6 +35,7 @@ public class ReadThread extends Thread {
 		while (true) {
 			try {
 				String input = inFromServer.readLine();
+				System.out.println(input);
 				String[] firstSplit = input.split("#");
 				scoreboard.setText("");
 				for (int i = 0; i < firstSplit.length; i++) {
