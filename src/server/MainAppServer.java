@@ -3,7 +3,7 @@ package server;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class MainApp {
+public class MainAppServer {
     
     public static void main(String[] args) {
         String board =

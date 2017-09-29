@@ -16,6 +16,7 @@ public class PlayerThread extends Thread {
     public PlayerThread(Socket connectionSocket, Game game, int xpos, int ypos, String direction) {
         this.connectionSocket = connectionSocket;
         this.game = game;
+        this.direction = direction;
         
         try {
             outToClient = new DataOutputStream(connectionSocket.getOutputStream());
@@ -79,6 +80,14 @@ public class PlayerThread extends Thread {
     
     public void setPoint(int point) {
         this.point = point;
+    }
+
+    public void reducePoints(int reduction) {
+        this.point -= reduction;
+    }
+    
+    public void increasePoints(int addition) {
+        this.point += addition;
     }
     
     public void setDirection(String direction) {

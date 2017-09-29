@@ -2,7 +2,6 @@ package server;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Game {
     private String board;
@@ -11,20 +10,8 @@ public class Game {
     public Game(String boardString) {
         this.players = new ArrayList<>();
         this.board = boardString;
-//        createBoard(boardString);
     }
 
-//    private void createBoard(String boardString) {
-//        board = new String[20][20];
-//        for (int j = 0; j < 20; j++) {
-//            String ar = boardString.substring(j * 20, (j + 1) * 20);
-//            for (int i = 0; i < 20; i++) {
-//                board[j][i] = ar.charAt(i) + "";
-//            }
-//            System.out.println(Arrays.toString(board[j]));
-//        }
-//    }
-    
     public ArrayList<PlayerThread> getPlayers() {
         return players;
     }
@@ -50,8 +37,8 @@ public class Game {
             break;
         
         case 2:
-            player.setXpos(19);
-            player.setYpos(19);
+            player.setXpos(18);
+            player.setYpos(18);
             break;
         
         case 3:
@@ -77,26 +64,54 @@ public class Game {
     public synchronized void receiveMessage(String message, PlayerThread player) throws Exception {
         switch (message.charAt(0)) {
         case 'U': {// Up
-            if (player.getYpos() > 0) {
-//                player.setYpos();
+            //check om der er en væg (og senere hero) og at man ikke går udenfor banen
+            int y = player.getYpos();
+            if (board.charAt(y - 20) != 'w') {
+                player.setYpos(y - 1);
+            }
+            else {
+                player.reducePoints(1);
             }
             break;
         }
         case 'D': {// Down
-            
+            int y = player.getYpos();
+            if (board.charAt(y + 20) != 'w') {
+                player.setYpos(y + 1);
+            }
+            else {
+                player.reducePoints(1);
+            }
             break;
         }
         case 'R': {// Right
-            
+            int x = player.getXpos();
+            if (board.charAt(x + 1) != 'w') {
+                player.setXpos(x + 1);
+            }
+            else {
+                player.reducePoints(1);
+            }
             break;
         }
         case 'L': {// Left
-            
+            int x = player.getXpos();
+            if (board.charAt(x - 1) != 'w') {
+                player.setXpos(x - 1);
+            }
+            else {
+                player.reducePoints(1);
+            }
             break;
         }
-        case 'N':
+        case 'N': {
             player.setPlayerName(message.substring(1));
             break;
+        }
+        case 'X': {
+            System.out.println("exit");//TODO exit
+            break;
+        }
         default: {
             throw new Exception("default i receiveMessage");
         }
