@@ -82,6 +82,8 @@ public class Game {
             
             if (!boardArray[y - 1][x].equals("w")) {
                 player.setYpos(y - 1);
+                player.setDirection("U");
+                player.increasePoints(1);
             }
             else {
                 player.reducePoints(1);
@@ -91,6 +93,8 @@ public class Game {
         case 'D': {// Down
             if (!boardArray[y + 1][x].equals("w")) {
                 player.setYpos(y + 1);
+                player.setDirection("D");
+                player.increasePoints(1);
             }
             else {
                 player.reducePoints(1);
@@ -101,6 +105,8 @@ public class Game {
             
             if (!boardArray[y][x + 1].equals("w")) {
                 player.setXpos(x + 1);
+                player.setDirection("R");
+                player.increasePoints(1);
             }
             else {
                 player.reducePoints(1);
@@ -110,6 +116,8 @@ public class Game {
         case 'L': {// Left
             if (!boardArray[y][x - 1].equals("w")) {
                 player.setXpos(x - 1);
+                player.setDirection("L");
+                player.increasePoints(1);
             }
             else {
                 player.reducePoints(1);
