@@ -3,71 +3,73 @@ package server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 public class Game {
     private String board;
     private String[][] boardArray;
     private ArrayList<PlayerThread> players;
-
+    private Random rand;
+    private int xSize, ySize;
+    
     public Game(String boardString) {
         this.players = new ArrayList<>();
         this.board = boardString;
-        createBoardArray(20, 20);
+        rand = new Random();
+        this.xSize = 20;
+        this.ySize = 20;
+        createBoardArray(xSize, ySize);
     }
-
+    
     private void createBoardArray(int x, int y) {
         boardArray = new String[x][y];
-        
+
         for (int i = 0; i < boardArray.length; i++) {
             boardArray[i] = board.substring(i * x, (i + 1) * y).split("(?!^)");
             System.out.println(Arrays.toString(boardArray[i]));
         }
     }
-    
-    public ArrayList<PlayerThread> getPlayers() {
-        return players;
-    }
 
+//    public ArrayList<PlayerThread> getPlayers() {
+//        return players;
+//    }
+    
     public void addPlayer(PlayerThread player) {
-        this.players.add(player);
         try {
             addPlayerToBoard(player);
+            this.players.add(player);
             player.sendMessage(board.toString());
-            notifyPlayers();
+//            notifyPlayers();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
+    private synchronized void addPlayerToBoard(PlayerThread player) {
+        boolean validPos = false;
+        int x = 0, y = 0;
 
-    private void addPlayerToBoard(PlayerThread player) {
-        // TODO hardcoded version, skal ændres til en der finder en random ledig plads
-        switch (players.size()) {
-        case 1:
-            player.setXpos(1);
-            player.setYpos(1);
-            break;
+        while (!validPos) {
+            x = rand.nextInt(xSize - 1) + 1;
+            y = rand.nextInt(xSize - 1) + 1;
 
-        case 2:
-            player.setXpos(18);
-            player.setYpos(18);
-            break;
-
-        case 3:
-            // player.setXpos(1);
-            // player.setYpos(1);
-            break;
-
-        case 4:
-
-            break;
-
-        default:
-            break;
+            if (!boardArray[y][x].equals("w")) {
+                boolean playerFoundAtPos = false;
+                int i = 0;
+                while (!playerFoundAtPos && i < players.size()) {
+                    if (players.get(i).getXpos() == x && players.get(i).getYpos() == y) {
+                        playerFoundAtPos = true;
+                    }
+                    i++;
+                }
+                validPos = !playerFoundAtPos;
+            }
         }
-        System.out.println("player x pos : " + player.getXpos());
+        player.setXpos(x);
+        player.setYpos(y);
     }
-
+    
     /**
      *
      * @param message
@@ -79,60 +81,19 @@ public class Game {
         int y = player.getYpos();
         switch (message.charAt(0)) {
         case 'U': {// Up
-            if (boardArray[y - 1][x].equals("w")) {
-                player.reducePoints(1);
-            }
-            else if (checkForPlayer(x, y - 1, player)) {
-                player.increasePoints(50);
-            }
-            else {
-                player.setYpos(y - 1);
-                player.increasePoints(1);
-            }
-            player.setDirection("U");
+            movePlayer(x, y - 1, "U", player);
             break;
         }
         case 'D': {// Down
-            if (boardArray[y + 1][x].equals("w")) {
-                player.reducePoints(1);
-            }
-            else if (checkForPlayer(x, y + 1, player)) {
-                player.increasePoints(50);
-            }
-            else {
-                player.setYpos(y + 1);
-                player.increasePoints(1);
-            }
-            player.setDirection("D");
+            movePlayer(x, y + 1, "D", player);
             break;
         }
         case 'R': {// Right
-
-            if (boardArray[y][x + 1].equals("w")) {
-                player.reducePoints(1);
-            }
-            else if (checkForPlayer(x + 1, y, player)) {
-                player.increasePoints(50);
-            }
-            else {
-                player.setXpos(x + 1);
-                player.increasePoints(1);
-            }
-            player.setDirection("R");
+            movePlayer(x + 1, y, "R", player);
             break;
         }
         case 'L': {// Left
-            if (boardArray[y][x - 1].equals("w")) {
-                player.reducePoints(1);
-            }
-            else if (checkForPlayer(x - 1, y, player)) {
-                player.increasePoints(50);
-            }
-            else {
-                player.setXpos(x - 1);
-                player.increasePoints(1);
-            }
-            player.setDirection("L");
+            movePlayer(x - 1, y, "L", player);
             break;
         }
         case 'N': {
@@ -141,7 +102,7 @@ public class Game {
         }
         case 'X': {
             players.remove(player);
-            player.stop();//TODO stop while loop
+            player.setKeepRunning(false);
             break;
         }
         default: {
@@ -149,10 +110,29 @@ public class Game {
         }
         }
     }
-
+    
+    private void movePlayer(int x, int y, String direction, PlayerThread player) {
+        if (boardArray[y][x].equals("w")) {
+            player.reducePoints(1);
+        }
+        else if (checkForPlayer(x, y, player)) {
+            player.increasePoints(50);
+        }
+        else {
+            player.setYpos(y);
+            player.setXpos(x);
+            player.increasePoints(1);
+        }
+        player.setDirection(direction);
+    }
+    
+    public void removePlayer(PlayerThread player) {
+        players.remove(player);
+    }
+    
     private boolean checkForPlayer(int x, int y, PlayerThread currentPlayer) {
         boolean foundPlayer = false;
-
+        
         for (PlayerThread p : players) {
             if (!p.equals(currentPlayer)) {
                 if (p.getXpos() == x && p.getYpos() == y) {
@@ -164,7 +144,7 @@ public class Game {
         }
         return foundPlayer;
     }
-
+    
     public synchronized void notifyPlayers() throws IOException {
         String s = "";
         for (PlayerThread p : players) {
@@ -174,6 +154,16 @@ public class Game {
         for (PlayerThread p : players) {
             p.sendMessage(s.substring(0, s.length() - 1));
         }
+        //TODO vi har mulighed for at gøre den sendte besked mindre,
+        /*
+         *Hvis vi kun sender navnet første gang der er en ny spiller, det kan gøres ved at have et array
+         *på hver client der holder på navnene og så for at kende forskel på om det er en normal besked
+         *eller en besked med opdatering i spillere (sker både ved remove og add player)
+         *kan vores beskeder fx være:
+         *XCasper,17,6,U,4#Casper,13,8,D,0 (ny/fjernet spiller)
+         *Z17,6,U,4#13,8,D,0
+         *Derved slipper vi for en hel del data da den ikke skal sende navnene med hele tiden
+         */
     }
-
+    
 }

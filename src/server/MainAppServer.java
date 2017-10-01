@@ -15,8 +15,7 @@ public class MainAppServer {
             ServerSocket welcomeSocket = new ServerSocket(1337);
             while (true) {
                 Socket connectionSocket = welcomeSocket.accept();
-                PlayerThread player = new PlayerThread(connectionSocket, game, 0, 0, "up");
-//                game.addPlayer(player);
+                PlayerThread player = new PlayerThread(connectionSocket, game, 0, 0, "D");
                 
                 player.start();
             }

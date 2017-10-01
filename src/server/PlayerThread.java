@@ -12,8 +12,10 @@ public class PlayerThread extends Thread {
     private int xpos, ypos, point;
     private String direction, playerName;
     private DataOutputStream outToClient;
+    private boolean keepRunning;
     
     public PlayerThread(Socket connectionSocket, Game game, int xpos, int ypos, String direction) {
+        keepRunning = true;
         this.connectionSocket = connectionSocket;
         this.game = game;
         this.direction = direction;
@@ -33,11 +35,24 @@ public class PlayerThread extends Thread {
             BufferedReader inFromClient =
                 new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             
-            while (true) {
-                String s = inFromClient.readLine();
-                System.out.println(s);
+            while (keepRunning) {
+                //TODO hvis man lukker client ned fra eclipse kommer der en "java.net.SocketException: Connection reset"
+//                if (connectionSocket.isClosed()) {
+//                    game.removePlayer(this);
+//                    break;
+//                }
+                
+                String messageFromClient = inFromClient.readLine();
+                System.out.println("playerthread.run: " + messageFromClient);
+
+//                if (s == null) {
+//                    game.removePlayer(this);
+//                    keepRunning = false;
+//                    break;
+//                }
+
                 try {
-                    game.receiveMessage(s, this);
+                    game.receiveMessage(messageFromClient, this);
                     game.notifyPlayers();
                 }
                 catch (Exception e) {
@@ -101,6 +116,10 @@ public class PlayerThread extends Thread {
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
+    }
+    
+    public void setKeepRunning(boolean keepRunning) {
+        this.keepRunning = keepRunning;
     }
 
 }
