@@ -11,7 +11,7 @@ public class Game {
     private ArrayList<PlayerThread> players;
     private Random rand;
     private int xSize, ySize;
-    
+
     public Game(String boardString) {
         this.players = new ArrayList<>();
         this.board = boardString;
@@ -20,20 +20,20 @@ public class Game {
         this.ySize = 20;
         createBoardArray(xSize, ySize);
     }
-    
+
     private void createBoardArray(int x, int y) {
         boardArray = new String[x][y];
-
+        
         for (int i = 0; i < boardArray.length; i++) {
             boardArray[i] = board.substring(i * x, (i + 1) * y).split("(?!^)");
             System.out.println(Arrays.toString(boardArray[i]));
         }
     }
-
+    
 //    public ArrayList<PlayerThread> getPlayers() {
 //        return players;
 //    }
-    
+
     public void addPlayer(PlayerThread player) {
         try {
             addPlayerToBoard(player);
@@ -45,15 +45,15 @@ public class Game {
             e.printStackTrace();
         }
     }
-    
+
     private synchronized void addPlayerToBoard(PlayerThread player) {
         boolean validPos = false;
         int x = 0, y = 0;
-
+        
         while (!validPos) {
             x = rand.nextInt(xSize - 1) + 1;
             y = rand.nextInt(xSize - 1) + 1;
-
+            
             if (!boardArray[y][x].equals("w")) {
                 boolean playerFoundAtPos = false;
                 int i = 0;
@@ -69,14 +69,14 @@ public class Game {
         player.setXpos(x);
         player.setYpos(y);
     }
-    
+
     /**
      *
      * @param message
      * @param player
      * @throws Exception
      */
-    public synchronized void receiveMessage(String message, PlayerThread player) throws Exception {
+    public synchronized void receiveMessage(String message, PlayerThread player) {
         int x = player.getXpos();
         int y = player.getYpos();
         switch (message.charAt(0)) {
@@ -106,11 +106,11 @@ public class Game {
             break;
         }
         default: {
-            throw new Exception("default i receiveMessage");
+            System.out.println("Default i game.receiveMessage");
         }
         }
     }
-    
+
     private void movePlayer(int x, int y, String direction, PlayerThread player) {
         if (boardArray[y][x].equals("w")) {
             player.reducePoints(1);
@@ -125,14 +125,14 @@ public class Game {
         }
         player.setDirection(direction);
     }
-    
+
     public void removePlayer(PlayerThread player) {
         players.remove(player);
     }
-    
+
     private boolean checkForPlayer(int x, int y, PlayerThread currentPlayer) {
         boolean foundPlayer = false;
-        
+
         for (PlayerThread p : players) {
             if (!p.equals(currentPlayer)) {
                 if (p.getXpos() == x && p.getYpos() == y) {
@@ -144,7 +144,7 @@ public class Game {
         }
         return foundPlayer;
     }
-    
+
     public synchronized void notifyPlayers() throws IOException {
         String s = "";
         for (PlayerThread p : players) {
@@ -165,5 +165,5 @@ public class Game {
          *Derved slipper vi for en hel del data da den ikke skal sende navnene med hele tiden
          */
     }
-    
+
 }

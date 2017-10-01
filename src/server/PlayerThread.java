@@ -45,19 +45,14 @@ public class PlayerThread extends Thread {
                 String messageFromClient = inFromClient.readLine();
                 System.out.println("playerthread.run: " + messageFromClient);
 
-//                if (s == null) {
-//                    game.removePlayer(this);
-//                    keepRunning = false;
-//                    break;
-//                }
+                if (messageFromClient == null) {
+                    game.removePlayer(this);
+                    keepRunning = false;
+                    break;
+                }
 
-                try {
-                    game.receiveMessage(messageFromClient, this);
-                    game.notifyPlayers();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
+                game.receiveMessage(messageFromClient, this);
+                game.notifyPlayers();
             }
             
         }
