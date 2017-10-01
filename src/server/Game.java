@@ -11,9 +11,11 @@ public class Game {
     private ArrayList<PlayerThread> players;
     private Random rand;
     private int xSize, ySize;
+    private ArrayList<Treasure> treasures;
 
     public Game(String boardString) {
         this.players = new ArrayList<>();
+        this.treasures = new ArrayList<>();
         this.board = boardString;
         rand = new Random();
         this.xSize = 20;
@@ -36,6 +38,7 @@ public class Game {
 
     public void addPlayer(PlayerThread player) {
         try {
+            spawnTreasure();//TODO bare for at teste spawn treasure
             addPlayerToBoard(player);
             this.players.add(player);
             player.sendMessage(board.toString());
@@ -68,6 +71,36 @@ public class Game {
         }
         player.setXpos(x);
         player.setYpos(y);
+    }
+    
+    private void spawnTreasure() {
+        boolean validPos = false;
+        int x = 0, y = 0, points = rand.nextInt(500) + 100;//TODO points for treasure
+        
+        while (!validPos) {
+            x = rand.nextInt(xSize - 1) + 1;
+            y = rand.nextInt(xSize - 1) + 1;
+            
+            if (!boardArray[y][x].equals("w")) {
+                boolean objectFoundAtPos = false;
+                int i = 0;
+                while (!objectFoundAtPos && i < players.size()) {
+                    if (players.get(i).getXpos() == x && players.get(i).getYpos() == y) {
+                        objectFoundAtPos = true;
+                    }
+                    i++;
+                }
+                i = 0;
+                while (!objectFoundAtPos && i < treasures.size()) {
+                    if (treasures.get(i).getX() == x && treasures.get(i).getY() == y) {
+                        objectFoundAtPos = true;
+                    }
+                    i++;
+                }
+                validPos = !objectFoundAtPos;
+            }
+        }
+        treasures.add(new Treasure(x, y, points));
     }
 
     /**
@@ -154,6 +187,8 @@ public class Game {
         for (PlayerThread p : players) {
             p.sendMessage(s.substring(0, s.length() - 1));
         }
+        //TODO send hvor henne treasures er
+
         //TODO vi har mulighed for at gøre den sendte besked mindre,
         /*
          *Hvis vi kun sender navnet første gang der er en ny spiller, det kan gøres ved at have et array
