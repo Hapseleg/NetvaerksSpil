@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -49,15 +50,15 @@ public class MainApp extends Application {
 			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			board = updateBoard(inFromServer.readLine());
-			boolean validName = false;
-			while (!validName) {
-				outToServer.writeBytes("N" + window.getName() + "\n");
-				String response = inFromServer.readLine();
-				if (response.equals("0")) {
-					window.showAndWait();
-				} else {
-					validName = true;
-				}
+
+			outToServer.writeBytes("N" + window.getName() + "\n");
+			String response = inFromServer.readLine();
+			System.out.println(response);
+			if (response.equals("0")) {
+				stop();
+				primaryStage.close();
+				Platform.exit();
+				clientSocket.close();
 			}
 
 			GridPane grid = new GridPane();

@@ -18,11 +18,9 @@ public class ReadThread extends Thread {
 	private Label[][] fields;
 	private TextArea scoreboard;
 	private ArrayList<Label> usedLabels;
-	private ArrayList<String> players;
+	private ArrayList<String> players, tempNames;
 
 	private Image hero_right, hero_left, hero_up, hero_down, floor, treasure;
-
-	private String tempName;
 
 	private boolean running;
 
@@ -39,6 +37,7 @@ public class ReadThread extends Thread {
 		usedLabels = new ArrayList<>();
 		running = true;
 		this.players = new ArrayList<String>();
+		this.tempNames = new ArrayList<String>();
 	}
 
 	@Override
@@ -74,7 +73,7 @@ public class ReadThread extends Thread {
 					for (int i = 0; i < updateArray.length; i++) {
 						String[] eachPlayer = updateArray[i].split(",");
 						ImageView dir;
-						tempName = players.get(i);
+						tempNames.add(players.get(i));
 						switch (eachPlayer[2]) {
 						case "U":
 							dir = new ImageView(hero_up);
@@ -90,19 +89,21 @@ public class ReadThread extends Thread {
 							break;
 						default:
 							dir = new ImageView(hero_up);
+							break;
 						}
 						Platform.runLater(() -> {
-							scoreboard.setText(scoreboard.getText() + tempName + ": " + eachPlayer[3] + "\n");
+							scoreboard.setText(scoreboard.getText() + tempNames.get(0) + ": " + eachPlayer[3] + "\n");
 							usedLabels.add(fields[Integer.parseInt(eachPlayer[0])][Integer.parseInt(eachPlayer[1])]);
 							fields[Integer.parseInt(eachPlayer[0])][Integer.parseInt(eachPlayer[1])].setGraphic(dir);
+							tempNames.remove(0);
 						});
 					}
 					break;
 				case "T":
-
+					System.out.println("My Precious!");
 					break;
 				case "S":
-
+					System.out.println("Pew Pew");
 					break;
 				default:
 					System.out.println("Didn't recognize message");
