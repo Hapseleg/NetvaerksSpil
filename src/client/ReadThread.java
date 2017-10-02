@@ -15,11 +15,14 @@ public class ReadThread extends Thread {
 
 	private Socket socket;
 	private BufferedReader inFromServer;
-	private Label[][] fields, fieldsDefault;
+	private Label[][] fields;
 	private TextArea scoreboard;
 	private ArrayList<Label> usedLabels;
+	private ArrayList<String> players;
 
-	private Image hero_right, hero_left, hero_up, hero_down, floor;
+	private Image hero_right, hero_left, hero_up, hero_down, floor, treasure;
+
+	private String tempName;
 
 	private boolean running;
 
@@ -27,7 +30,6 @@ public class ReadThread extends Thread {
 		this.socket = socket;
 		this.inFromServer = inFromServer;
 		this.fields = fields;
-		this.fieldsDefault = fields.clone();
 		this.scoreboard = scoreboard;
 		hero_right = new Image(getClass().getResourceAsStream("Image/heroRight.png"), 20, 20, false, false);
 		hero_left = new Image(getClass().getResourceAsStream("Image/heroLeft.png"), 20, 20, false, false);
@@ -36,49 +38,111 @@ public class ReadThread extends Thread {
 		floor = new Image(getClass().getResourceAsStream("Image/floor1.png"), 20, 20, false, false);
 		usedLabels = new ArrayList<>();
 		running = true;
+		this.players = new ArrayList<String>();
 	}
 
 	@Override
 	public void run() {
 		while (running) {
 			try {
-
 				String input = inFromServer.readLine();
 				System.out.println(input);
-				String[] firstSplit = input.split("#");
-				Platform.runLater(() -> {
-					scoreboard.setText("");
-					for (Label l : usedLabels) {
-						l.setGraphic(new ImageView(floor));
+				String protocol = input.substring(0, 1);
+				input = input.substring(1);
+				switch (protocol) {
+				case "L":
+					players.remove(input);
+					break;
+				case "J":
+					players.add(input);
+					break;
+				case "C":
+					String[] playerArray = input.split(",");
+					for (String s : playerArray) {
+						players.add(s);
 					}
-					usedLabels = new ArrayList<>();
-				});
-				for (int i = 0; i < firstSplit.length; i++) {
-					String[] eachPlayer = firstSplit[i].split(",");
-					ImageView dir;
-					switch (eachPlayer[3]) {
-					case "U":
-						dir = new ImageView(hero_up);
-						break;
-					case "D":
-						dir = new ImageView(hero_down);
-						break;
-					case "L":
-						dir = new ImageView(hero_left);
-						break;
-					case "R":
-						dir = new ImageView(hero_right);
-						break;
-					default:
-						dir = new ImageView(hero_up);
-					}
+					break;
+				case "U":
+					String[] updateArray = input.split("#");
 					Platform.runLater(() -> {
-
-						scoreboard.setText(scoreboard.getText() + eachPlayer[0] + ": " + eachPlayer[4] + "\n");
-						usedLabels.add(fields[Integer.parseInt(eachPlayer[1])][Integer.parseInt(eachPlayer[2])]);
-						fields[Integer.parseInt(eachPlayer[1])][Integer.parseInt(eachPlayer[2])].setGraphic(dir);
+						scoreboard.setText("");
+						for (Label l : usedLabels) {
+							l.setGraphic(new ImageView(floor));
+						}
+						usedLabels = new ArrayList<>();
 					});
+					for (int i = 0; i < updateArray.length; i++) {
+						String[] eachPlayer = updateArray[i].split(",");
+						ImageView dir;
+						tempName = players.get(i);
+						switch (eachPlayer[2]) {
+						case "U":
+							dir = new ImageView(hero_up);
+							break;
+						case "D":
+							dir = new ImageView(hero_down);
+							break;
+						case "L":
+							dir = new ImageView(hero_left);
+							break;
+						case "R":
+							dir = new ImageView(hero_right);
+							break;
+						default:
+							dir = new ImageView(hero_up);
+						}
+						Platform.runLater(() -> {
+							scoreboard.setText(scoreboard.getText() + tempName + ": " + eachPlayer[3] + "\n");
+							usedLabels.add(fields[Integer.parseInt(eachPlayer[0])][Integer.parseInt(eachPlayer[1])]);
+							fields[Integer.parseInt(eachPlayer[0])][Integer.parseInt(eachPlayer[1])].setGraphic(dir);
+						});
+					}
+					break;
+				case "T":
+
+					break;
+				case "S":
+
+					break;
+				default:
+					System.out.println("Didn't recognize message");
+					break;
 				}
+				// String[] firstSplit = input.split("#");
+				// Platform.runLater(() -> {
+				// scoreboard.setText("");
+				// for (Label l : usedLabels) {
+				// l.setGraphic(new ImageView(floor));
+				// }
+				// usedLabels = new ArrayList<>();
+				// });
+				// for (int i = 0; i < firstSplit.length; i++) {
+				// String[] eachPlayer = firstSplit[i].split(",");
+				// ImageView dir;
+				// switch (eachPlayer[2]) {
+				// case "U":
+				// dir = new ImageView(hero_up);
+				// break;
+				// case "D":
+				// dir = new ImageView(hero_down);
+				// break;
+				// case "L":
+				// dir = new ImageView(hero_left);
+				// break;
+				// case "R":
+				// dir = new ImageView(hero_right);
+				// break;
+				// default:
+				// dir = new ImageView(hero_up);
+				// }
+				// Platform.runLater(() -> {
+				//
+				// scoreboard.setText(scoreboard.getText() + eachPlayer[0] + ":
+				// " + eachPlayer[4] + "\n");
+				// usedLabels.add(fields[Integer.parseInt(eachPlayer[1])][Integer.parseInt(eachPlayer[2])]);
+				// fields[Integer.parseInt(eachPlayer[1])][Integer.parseInt(eachPlayer[2])].setGraphic(dir);
+				// });
+				// }
 			} catch (IOException e) {
 				running = false;
 			}
