@@ -19,8 +19,11 @@ public class ReadThread extends Thread {
 	private TextArea scoreboard;
 	private ArrayList<Label> usedLabels;
 	private ArrayList<String> players, tempNames;
+	private int tX, tY, sI, sJ;
 
-	private Image hero_right, hero_left, hero_up, hero_down, floor, treasure;
+	private ArrayList<Integer> drawnShot;
+
+	private Image hero_right, hero_left, hero_up, hero_down, floor, treasure, shotVert, shotHori;
 
 	private boolean running;
 
@@ -34,8 +37,11 @@ public class ReadThread extends Thread {
 		hero_up = new Image(getClass().getResourceAsStream("Image/heroUp.png"), 20, 20, false, false);
 		hero_down = new Image(getClass().getResourceAsStream("Image/heroDown.png"), 20, 20, false, false);
 		floor = new Image(getClass().getResourceAsStream("Image/floor1.png"), 20, 20, false, false);
+		shotVert = new Image(getClass().getResourceAsStream("Image/fireVertical.png"), 20, 20, false, false);
+		shotHori = new Image(getClass().getResourceAsStream("Image/fireHorizontal.png"), 20, 20, false, false);
 		usedLabels = new ArrayList<>();
 		running = true;
+		drawnShot = new ArrayList<Integer>();
 		this.players = new ArrayList<String>();
 		this.tempNames = new ArrayList<String>();
 	}
@@ -100,53 +106,99 @@ public class ReadThread extends Thread {
 					}
 					break;
 				case "T":
-					System.out.println("My Precious!");
+					if (input.length() > 0) {
+						System.out.println("My Precious!");
+						String[] coords = input.split(",");
+						tX = Integer.parseInt(coords[0]);
+						tY = Integer.parseInt(coords[1]);
+						Platform.runLater(() -> {
+							fields[tX][tY].setGraphic(new ImageView(treasure));
+						});
+					} else {
+						Platform.runLater(() -> {
+							fields[tX][tY].setGraphic(new ImageView(floor));
+						});
+					}
 					break;
 				case "S":
 					System.out.println("Pew Pew");
+					String[] shot = input.split(",");
+					// Få de 4 koordinator ud af array, så de lettere kan
+					// bruges.
+					int xStart = Integer.parseInt(shot[0]);
+					int yStart = Integer.parseInt(shot[1]);
+					int xEnd = Integer.parseInt(shot[2]);
+					int yEnd = Integer.parseInt(shot[3]);
+
+					// Er det vertikal skud
+					if (xStart == xEnd) {
+
+						// Ned
+						if (yStart > yEnd) {
+							sI = yEnd;
+							sJ = yStart;
+
+							// Op
+						} else {
+							sI = yStart;
+							sJ = yEnd;
+						}
+						Platform.runLater(() -> {
+							// Tegn laser
+							while (sI <= sJ) {
+								fields[xStart][sI].setGraphic(new ImageView(shotVert));
+
+								// Tilføj koordinator så de kan fjernes igen
+								drawnShot.add(xStart);
+								drawnShot.add(sI);
+								sI++;
+							}
+						});
+						// Horisontal skud
+					} else {
+
+						// Venstre
+						if (xStart > xEnd) {
+							sI = xEnd;
+							sJ = xStart;
+
+							// Højre
+						} else {
+							sI = xStart;
+							sJ = xEnd;
+						}
+						Platform.runLater(() -> {
+							while (sI <= sJ) {
+								fields[sI][yStart].setGraphic(new ImageView(shotVert));
+								drawnShot.add(sI);
+								drawnShot.add(yStart);
+								sI++;
+							}
+						});
+					}
+					// Vent 0.2 sekunder, og fjern skud fra bræt
+					sleep(200);
+					shotCancel();
 					break;
 				default:
 					System.out.println("Didn't recognize message");
 					break;
 				}
-				// String[] firstSplit = input.split("#");
-				// Platform.runLater(() -> {
-				// scoreboard.setText("");
-				// for (Label l : usedLabels) {
-				// l.setGraphic(new ImageView(floor));
-				// }
-				// usedLabels = new ArrayList<>();
-				// });
-				// for (int i = 0; i < firstSplit.length; i++) {
-				// String[] eachPlayer = firstSplit[i].split(",");
-				// ImageView dir;
-				// switch (eachPlayer[2]) {
-				// case "U":
-				// dir = new ImageView(hero_up);
-				// break;
-				// case "D":
-				// dir = new ImageView(hero_down);
-				// break;
-				// case "L":
-				// dir = new ImageView(hero_left);
-				// break;
-				// case "R":
-				// dir = new ImageView(hero_right);
-				// break;
-				// default:
-				// dir = new ImageView(hero_up);
-				// }
-				// Platform.runLater(() -> {
-				//
-				// scoreboard.setText(scoreboard.getText() + eachPlayer[0] + ":
-				// " + eachPlayer[4] + "\n");
-				// usedLabels.add(fields[Integer.parseInt(eachPlayer[1])][Integer.parseInt(eachPlayer[2])]);
-				// fields[Integer.parseInt(eachPlayer[1])][Integer.parseInt(eachPlayer[2])].setGraphic(dir);
-				// });
-				// }
 			} catch (IOException e) {
 				running = false;
+			} catch (InterruptedException e) {
+				System.out.println("Couldn't sleep");
 			}
 		}
+	}
+
+	// Hjælpe metode til at fjerne skud fra bræt
+	private void shotCancel() {
+		Platform.runLater(() -> {
+			for (int i = 0; i < drawnShot.size(); i = i + 2) {
+				fields[drawnShot.get(i)][drawnShot.get(i + 1)].setGraphic(new ImageView(floor));
+			}
+			drawnShot = new ArrayList<Integer>();
+		});
 	}
 }
