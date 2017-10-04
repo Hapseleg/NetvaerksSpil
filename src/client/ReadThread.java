@@ -181,7 +181,7 @@ public class ReadThread extends Thread {
 						});
 					}
 					// Vent 0.2 sekunder, og fjern skud fra bræt
-					sleep(0);
+					sleep(100);
 					shotCancel();
 					break;
 				default:
