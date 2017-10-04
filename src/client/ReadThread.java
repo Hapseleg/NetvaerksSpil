@@ -130,9 +130,10 @@ public class ReadThread extends Thread {
 					int yStart = Integer.parseInt(shot[1]);
 					int xEnd = Integer.parseInt(shot[2]);
 					int yEnd = Integer.parseInt(shot[3]);
+					String direction = shot[4];
 
 					// Er det vertikal skud
-					if (xStart == xEnd) {
+					if (direction.equals("U") || direction.equals("D")) {
 
 						// Ned
 						if (yStart > yEnd) {
