@@ -72,9 +72,7 @@ public class Game {
     
     private synchronized void spawnTreasure() {
         boolean validPos = false;
-        int x = 0, y = 0, points = rand.nextInt(50000) + 10000;// TODO points
-                                                               // for treasure
-        
+        int x = 0, y = 0, points = rand.nextInt(50000) + 10000;// TODO points for treasure
         while (!validPos) {
             x = rand.nextInt(xSize - 1) + 1;
             y = rand.nextInt(xSize - 1) + 1;
@@ -103,22 +101,30 @@ public class Game {
         switch (d) {
         case "U": {
             y = y - 1;
-            lastXY = calculateShotFired(x, y, d);
+            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+                lastXY = calculateShotFired(x, y, d);
+            }
             break;
         }
         case "D": {
             y = y + 1;
-            lastXY = calculateShotFired(x, y, d);
+            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+                lastXY = calculateShotFired(x, y, d);
+            }
             break;
         }
         case "L": {
             x = x - 1;
-            lastXY = calculateShotFired(x, y, d);
+            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+                lastXY = calculateShotFired(x, y, d);
+            }
             break;
         }
         case "R": {
             x = x + 1;
-            lastXY = calculateShotFired(x, y, d);
+            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+                lastXY = calculateShotFired(x, y, d);
+            }
             break;
         }
         default:
@@ -330,7 +336,6 @@ public class Game {
             }
         }
         catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
