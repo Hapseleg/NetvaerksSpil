@@ -39,6 +39,7 @@ public class ReadThread extends Thread {
 		floor = new Image(getClass().getResourceAsStream("Image/floor1.png"), 20, 20, false, false);
 		shotVert = new Image(getClass().getResourceAsStream("Image/fireVertical.png"), 20, 20, false, false);
 		shotHori = new Image(getClass().getResourceAsStream("Image/fireHorizontal.png"), 20, 20, false, false);
+		treasure = new Image(getClass().getResourceAsStream("Image/treasure.png"), 20, 20, false, false);
 		usedLabels = new ArrayList<>();
 		running = true;
 		drawnShot = new ArrayList<Integer>();
@@ -170,7 +171,7 @@ public class ReadThread extends Thread {
 						Platform.runLater(() -> {
 							// Tegn laser
 							while (sI <= sJ) {
-								fields[sI][yStart].setGraphic(new ImageView(shotVert));
+								fields[sI][yStart].setGraphic(new ImageView(shotHori));
 
 								// Tilføj koordinater så de kan fjernes igen
 								drawnShot.add(sI);
@@ -180,7 +181,7 @@ public class ReadThread extends Thread {
 						});
 					}
 					// Vent 0.2 sekunder, og fjern skud fra bræt
-					sleep(200);
+					sleep(0);
 					shotCancel();
 					break;
 				default:

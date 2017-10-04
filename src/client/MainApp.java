@@ -120,6 +120,13 @@ public class MainApp extends Application {
 						break;
 					case ESCAPE:
 						stop();
+						break;
+					case SPACE:
+						outToServer.writeBytes("S\n");
+						break;
+					case CONTROL:
+						outToServer.writeBytes("S\n");
+						break;
 					default:
 						break;
 					}
