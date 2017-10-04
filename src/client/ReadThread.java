@@ -52,7 +52,6 @@ public class ReadThread extends Thread {
 		while (running) {
 			try {
 				String input = inFromServer.readLine();
-				System.out.println(input);
 				String protocol = input.substring(0, 1);
 				input = input.substring(1);
 				switch (protocol) {
@@ -108,7 +107,6 @@ public class ReadThread extends Thread {
 					break;
 				case "T":
 					if (input.length() > 0) {
-						System.out.println("My Precious!");
 						String[] coords = input.split(",");
 						tX = Integer.parseInt(coords[0]);
 						tY = Integer.parseInt(coords[1]);
@@ -122,7 +120,6 @@ public class ReadThread extends Thread {
 					}
 					break;
 				case "S":
-					System.out.println("Pew Pew");
 					String[] shot = input.split(",");
 					// Få de 4 koordinator ud af array, så de lettere kan
 					// bruges.
@@ -182,7 +179,7 @@ public class ReadThread extends Thread {
 						});
 					}
 					// Vent 0.2 sekunder, og fjern skud fra bræt
-					sleep(100);
+					sleep(15);
 					shotCancel();
 					break;
 				default:
