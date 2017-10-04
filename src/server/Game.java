@@ -6,13 +6,23 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Game {
+    /*
+      *Protokoller:
+      *  LCasper   (sendes når en leaver)
+      *  JCasper   (sendes når en joiner til dem der allerede er i spillet)
+      *  CCasper,Bob,Mike        (Sendes til en der lige er joinet)
+      *  U17,6,U,4#13,8,D,0    (sendes når nogen går eller point skifter)
+      *  Txx,yy    (treasure spawner)
+      *  Sxx,yy,xx,yy,d  (laser skud, xy start og xy slut og direction)
+      */
+    
     private String board;
     private String[][] boardArray;
     private ArrayList<PlayerThread> players;
     private Random rand;
     private int xSize, ySize;
     private Treasure currentTreasure;
-    
+
     public Game(String boardString) {
         this.players = new ArrayList<>();
         this.board = boardString;
@@ -21,22 +31,22 @@ public class Game {
         this.ySize = 20;
         createBoardArray(xSize, ySize);
     }
-    
+
     private void createBoardArray(int x, int y) {
         boardArray = new String[x][y];
-        
+
         for (int i = 0; i < boardArray.length; i++) {
             boardArray[i] = board.substring(i * x, (i + 1) * y).split("(?!^)");
             System.out.println(Arrays.toString(boardArray[i]));
         }
     }
-    
+
     public void addPlayer(PlayerThread player) {
         try {
             this.players.add(player);
             player.sendMessage(board.toString());
             addPlayerToBoard(player);
-            
+
             if (players.size() >= 2) {
                 spawnTreasure();
             }
@@ -45,15 +55,15 @@ public class Game {
             e.printStackTrace();
         }
     }
-    
+
     private synchronized void addPlayerToBoard(PlayerThread player) {
         boolean validPos = false;
         int x = 0, y = 0;
-        
+
         while (!validPos) {
             x = rand.nextInt(xSize - 1) + 1;
             y = rand.nextInt(xSize - 1) + 1;
-            
+
             if (!boardArray[y][x].equals("w")) {
                 boolean playerFoundAtPos = false;
                 int i = 0;
@@ -69,14 +79,14 @@ public class Game {
         player.setXpos(x);
         player.setYpos(y);
     }
-    
+
     private synchronized void spawnTreasure() {
         boolean validPos = false;
         int x = 0, y = 0, points = rand.nextInt(50000) + 10000;// TODO points for treasure
         while (!validPos) {
             x = rand.nextInt(xSize - 1) + 1;
             y = rand.nextInt(xSize - 1) + 1;
-            
+
             if (!boardArray[y][x].equals("w")) {
                 boolean objectFoundAtPos = false;
                 int i = 0;
@@ -92,37 +102,47 @@ public class Game {
         currentTreasure = new Treasure(x, y, points);
         notifyAllPlayers("T" + x + "," + y);
     }
-    
+
     private synchronized void shotFired(PlayerThread player) {
         int x = player.getXpos(), y = player.getYpos();
         String d = player.getDirection();
         int[] lastXY = new int[2];
-        
+        boolean validShot =
+            !checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null;
+
         switch (d) {
         case "U": {
             y = y - 1;
-            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+            validShot =
+                !checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null;
+            if (validShot) {
                 lastXY = calculateShotFired(x, y, d);
             }
             break;
         }
         case "D": {
             y = y + 1;
-            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+            validShot =
+                !checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null;
+            if (validShot) {
                 lastXY = calculateShotFired(x, y, d);
             }
             break;
         }
         case "L": {
             x = x - 1;
-            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+            validShot =
+                !checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null;
+            if (validShot) {
                 lastXY = calculateShotFired(x, y, d);
             }
             break;
         }
         case "R": {
             x = x + 1;
-            if (!checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null) {
+            validShot =
+                !checkForTreasure(x, y) && !checkForWall(x, y) && checkForPlayer(x, y) == null;
+            if (validShot) {
                 lastXY = calculateShotFired(x, y, d);
             }
             break;
@@ -131,14 +151,17 @@ public class Game {
             System.out.println("default game.shotFired");
             break;
         }
-        String s = "S" + x + "," + y + "," + lastXY[0] + "," + lastXY[1];
-        System.out.println("shots fired: " + s);
-        notifyAllPlayers(s);
+        String s = "S" + x + "," + y + "," + lastXY[0] + "," + lastXY[1] + "," + d;
+        
+        if (validShot) {
+            notifyAllPlayers(s);
+        }
     }
-    
+
     private synchronized int[] calculateShotFired(int x, int y, String direction) {
         int[] lastXY = { x, y };
-        
+        System.out.println("Rekursiv skud: " + Arrays.toString(lastXY));
+
         // checker om den næste position er en væg eller en spiller, hvis der
         // ikke er kaldes calculateShotFired igen
         // hvis der ikke er, returneres den nuværende x,y
@@ -146,28 +169,31 @@ public class Game {
         switch (direction) {
         case "U": {
             foundPlayer = checkForPlayer(x, y - 1);
-            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
+            System.out.println(foundPlayer);
+            System.out.println(checkForWall(x, y));
+            System.out.println(checkForTreasure(x, y));
+            if (foundPlayer == null && !checkForWall(x, y - 1) && !checkForTreasure(x, y - 1)) {
                 lastXY = calculateShotFired(x, y - 1, direction);
             }
             break;
         }
         case "D": {
             foundPlayer = checkForPlayer(x, y + 1);
-            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
+            if (foundPlayer == null && !checkForWall(x, y + 1) && !checkForTreasure(x, y + 1)) {
                 lastXY = calculateShotFired(x, y + 1, direction);
             }
             break;
         }
         case "L": {
             foundPlayer = checkForPlayer(x - 1, y);
-            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
+            if (foundPlayer == null && !checkForWall(x - 1, y) && !checkForTreasure(x - 1, y)) {
                 lastXY = calculateShotFired(x - 1, y, direction);
             }
             break;
         }
         case "R": {
             foundPlayer = checkForPlayer(x + 1, y);
-            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
+            if (foundPlayer == null && !checkForWall(x + 1, y) && !checkForTreasure(x + 1, y)) {
                 lastXY = calculateShotFired(x + 1, y, direction);
             }
             break;
@@ -176,10 +202,10 @@ public class Game {
             System.out.println("default game.calculateShotFired");
             break;
         }
-        
+
         return lastXY;
     }
-    
+
     /**
      *
      * @param message
@@ -222,7 +248,7 @@ public class Game {
                 player.sendMessage("1");
                 player.setPlayerName(message.substring(1));
                 addPlayer(player);
-                
+
                 String c = "C";
                 for (PlayerThread p : players) {
                     if (!p.equals(player)) {
@@ -230,7 +256,7 @@ public class Game {
                     }
                 }
                 player.sendMessage(c + player.getPlayerName());
-                
+
                 // send navnene på de spillere der allerede er i spillet
                 for (PlayerThread p : players) {
                     if (!p.equals(player)) {
@@ -255,11 +281,11 @@ public class Game {
         }
         }
     }
-    
+
     private void movePlayer(int x, int y, String direction, PlayerThread player)
         throws IOException {
         PlayerThread foundPlayer = checkForPlayer(x, y);
-        
+
         if (boardArray[y][x].equals("w")) {
             player.reducePoints(1);
         }
@@ -271,29 +297,31 @@ public class Game {
             player.setYpos(y);
             player.setXpos(x);
             player.increasePoints(1);
-            
+
             if (checkForTreasure(x, y)) {
                 player.increasePoints(currentTreasure.getPoint());
                 // TODO skal der sendes et T for at slette den nuværende
                 // treasure client side?
-                spawnTreasure();
+                if (players.size() >= 2) {
+                    spawnTreasure();
+                }
             }
         }
         player.setDirection(direction);
-        
+
         // U17,6,U,4#13,8,D,0
         updatePositions();
     }
-    
+
     public void removePlayer(PlayerThread player) {
         players.remove(player);
         notifyAllPlayers("L" + player.getName());
         updatePositions();
     }
-    
+
     private PlayerThread checkForPlayer(int x, int y) {
         PlayerThread foundPlayer = null;
-        
+
         for (PlayerThread p : players) {
             if (p.getXpos() == x && p.getYpos() == y) {
                 foundPlayer = p;
@@ -302,24 +330,24 @@ public class Game {
         }
         return foundPlayer;
     }
-    
+
     private boolean checkForWall(int x, int y) {
         return boardArray[y][x].equals("w");
-        
+
     }
-    
+
     private boolean checkForTreasure(int x, int y) {
         boolean foundTreasure = false;
-        
+
         if (currentTreasure != null) {
             if (currentTreasure.getX() == x && currentTreasure.getY() == y) {
                 foundTreasure = true;
             }
         }
-        
+
         return foundTreasure;
     }
-    
+
     private synchronized void updatePositions() {
         String message = "U";
         for (PlayerThread p : players) {
@@ -328,7 +356,7 @@ public class Game {
         }
         notifyAllPlayers(message.substring(0, message.length() - 1));
     }
-    
+
     public synchronized void notifyAllPlayers(String message) {
         try {
             for (PlayerThread p : players) {
