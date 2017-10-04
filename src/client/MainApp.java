@@ -56,6 +56,9 @@ public class MainApp extends Application {
 				outToServer.writeBytes("N" + window.getName() + "\n");
 				response = inFromServer.readLine();
 			}
+			if (response.equals("0")) {
+				stop();
+			}
 			board = updateBoard(inFromServer.readLine());
 			GridPane grid = new GridPane();
 			grid.setHgap(10);
