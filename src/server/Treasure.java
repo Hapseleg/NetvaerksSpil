@@ -21,5 +21,4 @@ public class Treasure {
     public int getPoint() {
         return point;
     }
-    
 }

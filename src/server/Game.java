@@ -11,47 +11,49 @@ public class Game {
     private ArrayList<PlayerThread> players;
     private Random rand;
     private int xSize, ySize;
-    private ArrayList<Treasure> treasures;
-
+    private Treasure currentTreasure;
+    
     public Game(String boardString) {
         this.players = new ArrayList<>();
-        this.treasures = new ArrayList<>();
         this.board = boardString;
         rand = new Random();
         this.xSize = 20;
         this.ySize = 20;
         createBoardArray(xSize, ySize);
     }
-
+    
     private void createBoardArray(int x, int y) {
         boardArray = new String[x][y];
-        
+
         for (int i = 0; i < boardArray.length; i++) {
             boardArray[i] = board.substring(i * x, (i + 1) * y).split("(?!^)");
             System.out.println(Arrays.toString(boardArray[i]));
         }
     }
-    
+
     public void addPlayer(PlayerThread player) {
         try {
             this.players.add(player);
             player.sendMessage(board.toString());
             addPlayerToBoard(player);
-            spawnTreasure();//TODO bare for at teste spawn treasure
+
+            if (players.size() >= 2) {
+                spawnTreasure();
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    
     private synchronized void addPlayerToBoard(PlayerThread player) {
         boolean validPos = false;
         int x = 0, y = 0;
-        
+
         while (!validPos) {
             x = rand.nextInt(xSize - 1) + 1;
             y = rand.nextInt(xSize - 1) + 1;
-            
+
             if (!boardArray[y][x].equals("w")) {
                 boolean playerFoundAtPos = false;
                 int i = 0;
@@ -67,15 +69,15 @@ public class Game {
         player.setXpos(x);
         player.setYpos(y);
     }
-    
+
     private synchronized void spawnTreasure() {
         boolean validPos = false;
         int x = 0, y = 0, points = rand.nextInt(50000) + 10000;//TODO points for treasure
-        
+
         while (!validPos) {
             x = rand.nextInt(xSize - 1) + 1;
             y = rand.nextInt(xSize - 1) + 1;
-            
+
             if (!boardArray[y][x].equals("w")) {
                 boolean objectFoundAtPos = false;
                 int i = 0;
@@ -85,33 +87,91 @@ public class Game {
                     }
                     i++;
                 }
-                i = 0;
-                while (!objectFoundAtPos && i < treasures.size()) {
-                    if (treasures.get(i).getX() == x && treasures.get(i).getY() == y) {
-                        objectFoundAtPos = true;
-                    }
-                    i++;
-                }
                 validPos = !objectFoundAtPos;
             }
         }
-        treasures.add(new Treasure(x, y, points));
+        currentTreasure = new Treasure(x, y, points);
         notifyAllPlayers("T" + x + "," + y);
     }
-    
-//    private synchronized void shotFired(PlayerThread player){
-//
-//    }
-//
-//    private synchronized int[] calculateShotFired(int x, int y, String Direction){
-//        int[] a = new int[2];
-//
-//        if(x-1 > 0 &&)
-//
-//
-//        return a;
-//    }
 
+    private synchronized void shotFired(PlayerThread player) {
+        int x = player.getXpos(), y = player.getYpos();
+        String d = player.getDirection();
+        int[] lastXY = new int[2];
+        
+        switch (d) {
+        case "U": {
+            y = y - 1;
+            lastXY = calculateShotFired(x, y, d);
+            break;
+        }
+        case "D": {
+            y = y + 1;
+            lastXY = calculateShotFired(x, y, d);
+            break;
+        }
+        case "L": {
+            x = x - 1;
+            lastXY = calculateShotFired(x, y, d);
+            break;
+        }
+        case "R": {
+            x = x + 1;
+            lastXY = calculateShotFired(x, y, d);
+            break;
+        }
+        default:
+            System.out.println("default game.shotFired");
+            break;
+        }
+        String s = "S" + x + "," + y + "," + lastXY[0] + "," + lastXY[1];
+        System.out.println("shots fired: " + s);
+        notifyAllPlayers(s);
+    }
+    
+    private synchronized int[] calculateShotFired(int x, int y, String direction) {
+        int[] lastXY = new int[2];
+        
+        //checker om den næste position er en væg eller en spiller, hvis der ikke er kaldes calculateShotFired igen
+        //hvis der ikke er, returneres den nuværende x,y
+        PlayerThread foundPlayer = null;
+        switch (direction) {
+        case "U": {
+            foundPlayer = checkForPlayer(x, y - 1);
+            if (foundPlayer != null) {
+                lastXY = calculateShotFired(x, y - 1, direction);
+            }
+            break;
+        }
+        case "D": {
+            foundPlayer = checkForPlayer(x, y + 1);
+            if (foundPlayer != null) {
+                lastXY = calculateShotFired(x, y + 1, direction);
+            }
+            break;
+        }
+        case "L": {
+            foundPlayer = checkForPlayer(x - 1, y);
+            if (foundPlayer != null) {
+                lastXY = calculateShotFired(x - 1, y, direction);
+            }
+            break;
+        }
+        case "R": {
+            foundPlayer = checkForPlayer(x + 1, y);
+            if (foundPlayer != null) {
+                lastXY = calculateShotFired(x + 1, y, direction);
+            }
+            break;
+        }
+        default:
+            System.out.println("default game.calculateShotFired");
+            break;
+        }
+        
+        return lastXY;
+    }
+    
     /**
      *
      * @param message
@@ -132,12 +192,12 @@ public class Game {
             movePlayer(x, y + 1, "D", player);
             break;
         }
-        case 'R': {// Right
-            movePlayer(x + 1, y, "R", player);
+        case 'R': {// Left
+            movePlayer(x - 1, y, "L", player);
             break;
         }
-        case 'L': {// Left
-            movePlayer(x - 1, y, "L", player);
+        case 'L': {// Right
+            movePlayer(x + 1, y, "R", player);
             break;
         }
         case 'N': {
@@ -155,7 +215,7 @@ public class Game {
             else {
                 player.sendMessage("1");
                 player.setPlayerName(message.substring(1));
-
+                
                 String c = "C";
                 for (PlayerThread p : players) {
                     if (!p.equals(player)) {
@@ -163,7 +223,7 @@ public class Game {
                     }
                 }
                 player.sendMessage(c + player.getPlayerName());
-                
+
                 //send navnene på de spillere der allerede er i spillet
                 for (PlayerThread p : players) {
                     if (!p.equals(player)) {
@@ -180,7 +240,7 @@ public class Game {
             break;
         }
         case 'S': {
-//            shotFired(player);
+            shotFired(player);
             break;
         }
         default: {
@@ -188,47 +248,65 @@ public class Game {
         }
         }
     }
-
+    
     private void movePlayer(int x, int y, String direction, PlayerThread player)
         throws IOException {
+        PlayerThread foundPlayer = checkForPlayer(x, y);
+        
         if (boardArray[y][x].equals("w")) {
             player.reducePoints(1);
         }
-        else if (checkForPlayer(x, y, player)) {
+        else if (foundPlayer != null) {
+            foundPlayer.reducePoints(50);
             player.increasePoints(50);
         }
         else {
             player.setYpos(y);
             player.setXpos(x);
             player.increasePoints(1);
+
+            if (checkForTreasure(x, y)) {
+                player.increasePoints(currentTreasure.getPoint());
+                //TODO skal der sendes et T for at slette den nuværende treasure client side?
+                spawnTreasure();
+            }
         }
         player.setDirection(direction);
-        
+
         //U17,6,U,4#13,8,D,0
         updatePositions();
     }
-
+    
     public void removePlayer(PlayerThread player) {
         players.remove(player);
         notifyAllPlayers("L" + player.getName());
         updatePositions();
     }
-
-    private boolean checkForPlayer(int x, int y, PlayerThread currentPlayer) {
-        boolean foundPlayer = false;
-
+    
+    private PlayerThread checkForPlayer(int x, int y) {
+        PlayerThread foundPlayer = null;
+        
         for (PlayerThread p : players) {
-            if (!p.equals(currentPlayer)) {
-                if (p.getXpos() == x && p.getYpos() == y) {
-                    foundPlayer = true;
-                    p.reducePoints(50);
-                    break;
-                }
+            if (p.getXpos() == x && p.getYpos() == y) {
+                foundPlayer = p;
+                break;
             }
         }
         return foundPlayer;
     }
-    
+
+    private boolean checkForTreasure(int x, int y) {
+        boolean foundTreasure = false;
+
+        if (currentTreasure != null) {
+            if (currentTreasure.getX() == x && currentTreasure.getY() == y) {
+                foundTreasure = true;
+            }
+        }
+
+        return foundTreasure;
+    }
+
     private synchronized void updatePositions() {
         String message = "U";
         for (PlayerThread p : players) {
@@ -237,7 +315,7 @@ public class Game {
         }
         notifyAllPlayers(message.substring(0, message.length() - 1));
     }
-
+    
     public synchronized void notifyAllPlayers(String message) {
         try {
             for (PlayerThread p : players) {
@@ -249,24 +327,4 @@ public class Game {
             e.printStackTrace();
         }
     }
-    
-    //TODO vi har mulighed for at gøre den sendte besked mindre,
-    /*
-     *Hvis vi kun sender navnet første gang der er en ny spiller, det kan gøres ved at have et array
-     *på hver client der holder på navnene og så for at kende forskel på om det er en normal besked
-     *eller en besked med opdatering i spillere (sker både ved remove og add player)
-     *kan vores beskeder fx være:
-     *Derved slipper vi for en hel del data da den ikke skal sende navnene med hele tiden
-     */
-    
-    /*
-     *Protokoller:
-     *  LCasper   (sendes når en leaver)
-     *  JCasper,xx,yy,d,p     (sendes når en joiner til dem der allerede er i spillet)
-     *  CCasper,Bob,Mike        (Sendes til en der lige er joinet)
-     *  U17,6,U,4#13,8,D,0    (sendes når nogen går eller point skifter)
-     *  Txx,yy    (treasure spawner)
-     *  Sxx,yy,xx,yy  (laser skud, xy start og xy slut)
-     */
-
 }
