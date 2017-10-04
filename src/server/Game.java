@@ -131,7 +131,7 @@ public class Game {
     }
     
     private synchronized int[] calculateShotFired(int x, int y, String direction) {
-        int[] lastXY = new int[2];
+        int[] lastXY = { x, y };
         
         // checker om den næste position er en væg eller en spiller, hvis der
         // ikke er kaldes calculateShotFired igen
@@ -140,28 +140,28 @@ public class Game {
         switch (direction) {
         case "U": {
             foundPlayer = checkForPlayer(x, y - 1);
-            if (foundPlayer != null) {
+            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
                 lastXY = calculateShotFired(x, y - 1, direction);
             }
             break;
         }
         case "D": {
             foundPlayer = checkForPlayer(x, y + 1);
-            if (foundPlayer != null) {
+            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
                 lastXY = calculateShotFired(x, y + 1, direction);
             }
             break;
         }
         case "L": {
             foundPlayer = checkForPlayer(x - 1, y);
-            if (foundPlayer != null) {
+            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
                 lastXY = calculateShotFired(x - 1, y, direction);
             }
             break;
         }
         case "R": {
             foundPlayer = checkForPlayer(x + 1, y);
-            if (foundPlayer != null) {
+            if (foundPlayer != null && !checkForWall(x, y) && checkForTreasure(x, y)) {
                 lastXY = calculateShotFired(x + 1, y, direction);
             }
             break;
@@ -295,6 +295,11 @@ public class Game {
             }
         }
         return foundPlayer;
+    }
+    
+    private boolean checkForWall(int x, int y) {
+        return boardArray[y][x].equals("w");
+        
     }
     
     private boolean checkForTreasure(int x, int y) {
