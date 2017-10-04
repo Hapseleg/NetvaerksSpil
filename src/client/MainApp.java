@@ -123,7 +123,6 @@ public class MainApp extends Application {
 						outToServer.writeBytes("R\n");
 						break;
 					case ESCAPE:
-						outToServer.writeBytes("X\n");
 						stop();
 					default:
 						break;
@@ -157,7 +156,7 @@ public class MainApp extends Application {
 			outToServer.writeBytes("X\n");
 			clientSocket.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 }

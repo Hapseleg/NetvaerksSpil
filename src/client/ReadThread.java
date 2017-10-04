@@ -168,8 +168,11 @@ public class ReadThread extends Thread {
 							sJ = xEnd;
 						}
 						Platform.runLater(() -> {
+							// Tegn laser
 							while (sI <= sJ) {
 								fields[sI][yStart].setGraphic(new ImageView(shotVert));
+
+								// Tilføj koordinater så de kan fjernes igen
 								drawnShot.add(sI);
 								drawnShot.add(yStart);
 								sI++;
