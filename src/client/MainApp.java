@@ -52,6 +52,7 @@ public class MainApp extends Application {
 			String response = inFromServer.readLine();
 			System.out.println(response);
 			while (response.equals("0")) {
+				window.nameTaken();
 				window.showAndWait();
 				outToServer.writeBytes("N" + window.getName() + "\n");
 				response = inFromServer.readLine();
