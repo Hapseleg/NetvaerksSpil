@@ -19,27 +19,37 @@ public class ReadThread extends Thread {
 	private TextArea scoreboard;
 	private ArrayList<Label> usedLabels;
 	private ArrayList<String> players, tempNames;
-	private int tX, tY, sI, sJ;
+	private int tX, tY, sI, sJ, size;
 
 	private ArrayList<Integer> drawnShot;
 
-	private Image hero_right, hero_left, hero_up, hero_down, floor, treasure, shotVert, shotHori;
+	private Image hero_right, hero_left, hero_up, hero_down, floor, treasure, shotVert, shotHori, startU, startL,
+			startD, startR, endU, endL, endD, endR;
 
 	private boolean running;
 
-	public ReadThread(Socket socket, BufferedReader inFromServer, Label[][] fields, TextArea scoreboard) {
+	public ReadThread(Socket socket, BufferedReader inFromServer, Label[][] fields, TextArea scoreboard, int size) {
+		this.size = size;
 		this.socket = socket;
 		this.inFromServer = inFromServer;
 		this.fields = fields;
 		this.scoreboard = scoreboard;
-		hero_right = new Image(getClass().getResourceAsStream("Image/heroRight.png"), 20, 20, false, false);
-		hero_left = new Image(getClass().getResourceAsStream("Image/heroLeft.png"), 20, 20, false, false);
-		hero_up = new Image(getClass().getResourceAsStream("Image/heroUp.png"), 20, 20, false, false);
-		hero_down = new Image(getClass().getResourceAsStream("Image/heroDown.png"), 20, 20, false, false);
-		floor = new Image(getClass().getResourceAsStream("Image/floor1.png"), 20, 20, false, false);
-		shotVert = new Image(getClass().getResourceAsStream("Image/fireVertical.png"), 20, 20, false, false);
-		shotHori = new Image(getClass().getResourceAsStream("Image/fireHorizontal.png"), 20, 20, false, false);
-		treasure = new Image(getClass().getResourceAsStream("Image/treasure.png"), 20, 20, false, false);
+		hero_right = new Image(getClass().getResourceAsStream("Image/heroRight.png"), size, size, false, false);
+		hero_left = new Image(getClass().getResourceAsStream("Image/heroLeft.png"), size, size, false, false);
+		hero_up = new Image(getClass().getResourceAsStream("Image/heroUp.png"), size, size, false, false);
+		hero_down = new Image(getClass().getResourceAsStream("Image/heroDown.png"), size, size, false, false);
+		floor = new Image(getClass().getResourceAsStream("Image/floor1.png"), size, size, false, false);
+		shotVert = new Image(getClass().getResourceAsStream("Image/fireVertical.png"), size, size, false, false);
+		shotHori = new Image(getClass().getResourceAsStream("Image/fireHorizontal.png"), size, size, false, false);
+		treasure = new Image(getClass().getResourceAsStream("Image/treasure.png"), size, size, false, false);
+		startU = new Image(getClass().getResourceAsStream("Image/fireUp.png"), size, size, false, false);
+		startL = new Image(getClass().getResourceAsStream("Image/fireLeft.png"), size, size, false, false);
+		startD = new Image(getClass().getResourceAsStream("Image/fireDown.png"), size, size, false, false);
+		startR = new Image(getClass().getResourceAsStream("Image/fireRight.png"), size, size, false, false);
+		endU = new Image(getClass().getResourceAsStream("Image/fireWallNorth.png"), size, size, false, false);
+		endL = new Image(getClass().getResourceAsStream("Image/fireWallWest.png"), size, size, false, false);
+		endD = new Image(getClass().getResourceAsStream("Image/fireWallSouth.png"), size, size, false, false);
+		endR = new Image(getClass().getResourceAsStream("Image/fireWallEast.png"), size, size, false, false);
 		usedLabels = new ArrayList<>();
 		running = true;
 		drawnShot = new ArrayList<Integer>();
@@ -152,6 +162,13 @@ public class ReadThread extends Thread {
 								drawnShot.add(sI);
 								sI++;
 							}
+							if (direction.equals("U")) {
+								fields[xStart][yStart].setGraphic(new ImageView(startU));
+								fields[xEnd][yEnd].setGraphic(new ImageView(endU));
+							} else {
+								fields[xStart][yStart].setGraphic(new ImageView(startD));
+								fields[xEnd][yEnd].setGraphic(new ImageView(endD));
+							}
 						});
 						// Horisontal skud
 					} else {
@@ -175,6 +192,13 @@ public class ReadThread extends Thread {
 								drawnShot.add(sI);
 								drawnShot.add(yStart);
 								sI++;
+							}
+							if (direction.equals("R")) {
+								fields[xStart][yStart].setGraphic(new ImageView(startR));
+								fields[xEnd][yEnd].setGraphic(new ImageView(endR));
+							} else {
+								fields[xStart][yStart].setGraphic(new ImageView(startL));
+								fields[xEnd][yEnd].setGraphic(new ImageView(endL));
 							}
 						});
 					}
