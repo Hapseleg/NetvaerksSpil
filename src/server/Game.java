@@ -387,10 +387,9 @@ public class Game {
 		return maze;
 	}
 
-	private boolean checkClosed(String[][] maze) {
+	private void checkClosed(String[][] maze) {
 		visitedCell = 0;
 		visited = new boolean[size][size];
-		boolean closed = false;
 		boolean foundEmpty = false;
 		int firstX = 1;
 		int firstY = 1;
@@ -407,48 +406,41 @@ public class Game {
 			}
 		}
 		// System.out.println("Start at (" + firstX + ", " + firstY + ")");
-		closed = checkClosed(maze, firstX, firstY);
+		checkClosed(maze, firstX, firstY);
 		// System.out.println(closed);
-		return closed;
 	}
 
-	private boolean checkClosed(String[][] maze, int x, int y) {
-		if (maze[x][y].equals("w")) {
+	private void checkClosed(String[][] maze, int x, int y) {
+		if (!maze[x][y].equals("w")) {
 			// System.out.println("Found wall at: " + x + ", " + y);
-			return false;
-		}
-		// System.out.println(visited[x][y]);
-		visited[x][y] = true;
-		visitedCell++;
-		// System.out.println("Checking (" + x + ", " + y + ")");
-		boolean up, left, down, right;
-		up = true;
-		left = true;
-		down = true;
-		right = true;
-		// Check up
-		if (x > 1 && !visited[x - 1][y]) {
-			// System.out.println("UP");
-			up = checkClosed(maze, x - 1, y);
-		}
+			// System.out.println(visited[x][y]);
+			visited[x][y] = true;
+			visitedCell++;
+			// System.out.println("Checking (" + x + ", " + y + ")");
 
-		// Check left
-		if (y > 1 && !visited[x][y - 1]) {
-			// System.out.println("LEFT");
-			left = checkClosed(maze, x, y - 1);
-		}
+			// Check up
+			if (x > 1 && !visited[x - 1][y]) {
+				// System.out.println("UP");
+				checkClosed(maze, x - 1, y);
+			}
 
-		// Check down
-		if (x < size - 2 && !visited[x + 1][y]) {
-			// System.out.println("DOWN");
-			down = checkClosed(maze, x + 1, y);
-		}
+			// Check left
+			if (y > 1 && !visited[x][y - 1]) {
+				// System.out.println("LEFT");
+				checkClosed(maze, x, y - 1);
+			}
 
-		// Check right
-		if (y < size - 2 && !visited[x][y + 1]) {
-			// System.out.println("RIGHT");
-			right = checkClosed(maze, x, y + 1);
+			// Check down
+			if (x < size - 2 && !visited[x + 1][y]) {
+				// System.out.println("DOWN");
+				checkClosed(maze, x + 1, y);
+			}
+
+			// Check right
+			if (y < size - 2 && !visited[x][y + 1]) {
+				// System.out.println("RIGHT");
+				checkClosed(maze, x, y + 1);
+			}
 		}
-		return up && left && down && right;
 	}
 }
